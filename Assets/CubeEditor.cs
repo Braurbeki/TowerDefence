@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using UnityEngine;
 
 [ExecuteInEditMode]
+[SelectionBase]
 public class CubeEditor : MonoBehaviour
 {
     [SerializeField][Range(0f, 20f)] float gridSize = 10f;
@@ -16,6 +17,6 @@ public class CubeEditor : MonoBehaviour
         transform.position = new Vector3(snapPos.x, 0f, snapPos.z);
 
         textMesh = GetComponentInChildren<TextMesh>();
-        textMesh.text = snapPos.x + ";" + snapPos.z;
+        textMesh.text = snapPos.x/gridSize + ";" + snapPos.z/gridSize;
     }
 }
