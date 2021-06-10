@@ -5,6 +5,11 @@ using UnityEngine;
 public class Waypoint : MonoBehaviour
 {
 
+    public bool isExplored = false, isPlaceable = true;
+    public Waypoint ExploredFrom;
+
+    [SerializeField] Color ExploredColor;
+
     Vector2Int gridPos;
     const int gridSize = 10;
 
@@ -21,9 +26,12 @@ public class Waypoint : MonoBehaviour
         return gridSize;
     }
 
-    public void setTopColor(Color color)
+    void OnMouseOver()
     {
-        MeshRenderer topRender = transform.Find("Top").GetComponent<MeshRenderer>();
-        topRender.material.color = color;
+        if( Input.GetMouseButtonDown(0) && isPlaceable )
+        {
+            FindObjectOfType<TowerFactory>().addTower(this);
+        }
+        
     }
 }

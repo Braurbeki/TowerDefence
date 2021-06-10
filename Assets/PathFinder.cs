@@ -18,25 +18,60 @@ public class PathFinder : MonoBehaviour
 
     [SerializeField] Waypoint startWaypoint;
     [SerializeField] Waypoint finishWaypoint;
-    void Start()
+    [SerializeField] List<Waypoint> path = new List<Waypoint>();
+
+    Waypoint searchCenter;
+    bool isCalled = false;
+    public List<Waypoint> getPath()
     {
-        LoadBlocks();
-        paintStartAndFinish();
-        PathFind();
-        //ExploreNeighbours();
+        if(!isCalled)
+        {
+            CalculatePath();
+            isCalled = true;
+        }
+        return path;
     }
 
-    private void PathFind()
+    private void CalculatePath()
+    {
+        LoadBlocks();
+        BreadthFirstSearch();
+        CreatePath();
+    }
+
+    private void CreatePath()
+    {
+        setAsPath(finishWaypoint);
+        Waypoint previous = finishWaypoint.ExploredFrom;
+        while(previous != startWaypoint)
+        {
+            setAsPath(previous);
+            previous = previous.ExploredFrom;
+        }
+        setAsPath(startWaypoint);
+        path.Reverse();
+    }
+
+    private void setAsPath(Waypoint waypoint)
+    {
+        path.Add(waypoint);
+        waypoint.isPlaceable = false;
+    }
+
+    private void BreadthFirstSearch()
     {
         queue.Enqueue(startWaypoint);
+        startWaypoint.isExplored = true;
         while(queue.Count > 0 && isRunning)
         {
-            var searchCenter= queue.Dequeue();
-            HaltIfEndPoint(searchCenter);
+            searchCenter = queue.Dequeue();
+            searchCenter.isExplored = true;
+            HaltIfEndPoint();
+            ExploreNeighbours();
         }
     }
 
-    private void HaltIfEndPoint(Waypoint searchCenter)
+    private void HaltIfEndPoint()
     {
         if(searchCenter == finishWaypoint)
         {
@@ -44,23 +79,31 @@ public class PathFinder : MonoBehaviour
         }
     }
 
-    private void paintStartAndFinish()
-    {
-        startWaypoint.setTopColor(Color.green);
-        finishWaypoint.setTopColor(Color.red);
-    }
-
     private void ExploreNeighbours()
     {
+        if(!isRunning) { return; }
         foreach(Vector2Int direction in directions)
         {
-            var explorationCoords = startWaypoint.getGridPos() + direction;
-            try
+            var explorationCoords = searchCenter.getGridPos() + direction;
+            if(grid.ContainsKey(explorationCoords))
             {
-                grid[explorationCoords].setTopColor(Color.blue);
-            } catch { }
+                if (grid[explorationCoords].isExplored || queue.Contains(grid[explorationCoords]))
+                {
+                    
+                } else
+                {
+                    QueueNewNeighbours(explorationCoords);
+                }
+            }
             
         }
+    }
+
+    private void QueueNewNeighbours(Vector2Int explorationCoords)
+    {
+        Waypoint neighbour = grid[explorationCoords];
+        queue.Enqueue(neighbour);
+        neighbour.ExploredFrom = searchCenter;
     }
 
     private void LoadBlocks()
@@ -77,5 +120,10 @@ public class PathFinder : MonoBehaviour
                 grid.Add(waypoint.getGridPos(), waypoint);
             }
         }
+    }
+
+    public Waypoint getFinishWaypoint()
+    {
+        return finishWaypoint;
     }
 }
